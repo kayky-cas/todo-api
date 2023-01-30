@@ -1,38 +1,48 @@
 use actix_web::{
+    http::header::Encoding,
     post,
     web::{Data, Json},
     Responder, Result,
 };
+use jsonwebtoken::{encode, EncodingKey};
 use serde_json::json;
 use sqlx::{postgres::PgDatabaseError, query, query_as};
 
 use crate::{
     api::error::ApiError,
-    model::user::{CreateUser, LoginUser, User},
+    model::user::{CreateUser, LoginUser, User, UserInfo},
     AppState,
 };
 
 #[post("")]
 pub async fn login(body: Json<LoginUser>, data: Data<AppState>) -> Result<impl Responder> {
-    println!("{:?}", body);
-
     let user = query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(&data.db)
-        .await;
-
-    if user.is_err() {
-        return Err(ApiError::InternalDatabaseError(None).into());
-    }
-
-    let user = user.unwrap();
+        .await
+        .map_err(|_| ApiError::InternalDatabaseError(None))?;
 
     if user.is_none() {
         return Err(ApiError::Forbidden(Some("Incorrect email or password!".to_string())).into());
     }
 
-    Ok(Json(json!({
-        "user": user.unwrap()
-    })))
+    let user = user.unwrap();
+
+    let secret_key =
+        std::env::var("SECRET_KEY").map_err(|_| ApiError::InternalServerError(None))?;
+
+    let token = encode(
+        &jsonwebtoken::Header::default(),
+        &user,
+        &EncodingKey::from_secret(&secret_key.as_ref()),
+    )
+    .map_err(|_| ApiError::InternalServerError(None))?;
+
+    let user = UserInfo {
+        name: user.name,
+        email: user.email,
+    };
+
+    Ok(Json(json!({ "user": user, "token": token })))
 }
 
 #[post("/register")]

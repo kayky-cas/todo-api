@@ -2,14 +2,18 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
-use crate::api::error::ApiError;
-
-#[derive(Serialize, Deserialize, FromRow)]
+#[derive(Serialize, Deserialize, Debug, FromRow)]
 pub struct User {
     pub id: Uuid,
     pub name: String,
     pub email: String,
     pub password: String,
+}
+
+#[derive(Serialize)]
+pub struct UserInfo {
+    pub name: String,
+    pub email: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -18,7 +22,7 @@ pub struct LoginUser {
     pub password: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct CreateUser {
     pub name: String,
     pub email: String,

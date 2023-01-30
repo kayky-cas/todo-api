@@ -1,9 +1,5 @@
 use actix_web::{
-    body::MessageBody,
-    http::{
-        header::{ContentType, HeaderMap, CONTENT_TYPE},
-        StatusCode,
-    },
+    http::{header::ContentType, StatusCode},
     HttpResponse, ResponseError,
 };
 use derive_more::Display;
@@ -12,6 +8,8 @@ use derive_more::Display;
 pub enum ApiError {
     #[display(fmt = "Internal database error!")]
     InternalDatabaseError(Option<String>),
+    #[display(fmt = "Internal server error!")]
+    InternalServerError(Option<String>),
     #[display(fmt = "Unauthorized request!")]
     Unauthorized(Option<String>),
     #[display(fmt = "Forbiden resource!")]
@@ -27,7 +25,7 @@ use ApiError::*;
 impl ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match self {
-            InternalDatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            InternalDatabaseError(_) | InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Unauthorized(_) => StatusCode::UNAUTHORIZED,
             Forbidden(_) => StatusCode::FORBIDDEN,
             BadRequest(_) => StatusCode::BAD_REQUEST,
@@ -39,6 +37,7 @@ impl ResponseError for ApiError {
 
         let message: String = match self {
             InternalDatabaseError(Some(message))
+            | InternalServerError(Some(message))
             | Unauthorized(Some(message))
             | Forbidden(Some(message))
             | BadRequest(Some(message)) => message.clone(),
