@@ -10,6 +10,11 @@ pub struct User {
     pub password: String,
 }
 
+#[derive(Serialize, Clone, Debug)]
+pub struct UserId {
+    pub id: String,
+}
+
 #[derive(Serialize)]
 pub struct UserInfo {
     pub name: String,

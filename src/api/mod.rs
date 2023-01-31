@@ -2,7 +2,10 @@ mod auth;
 pub mod error;
 mod task;
 
-use crate::model::user::User;
+use crate::{
+    api::auth::Claims,
+    model::user::{User, UserId},
+};
 
 use self::{
     auth::{login, register},
@@ -17,7 +20,6 @@ use actix_web::{
 };
 use actix_web_httpauth::{extractors::bearer::BearerAuth, middleware::HttpAuthentication};
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use uuid::Uuid;
 
 pub fn config(conf: &mut web::ServiceConfig) {
     let bearer_middleware = HttpAuthentication::bearer(jwt_validate);
@@ -45,22 +47,21 @@ async fn jwt_validate(
         return Err((ApiError::InternalServerError(None).into(), req));
     }
 
-    let user = decode::<User>(
+    let claim = decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret_key.unwrap().as_ref()),
         &Validation::default(),
     );
 
-    println!("{:?}", user);
-
-    match user {
-        Ok(user) => {
-            req.extensions_mut().insert(user);
-            Ok(req)
-        }
-        Err(_) => Err((
-            ApiError::Unauthorized(Some("Bearer token not valid!".to_string())).into(),
-            req,
-        )),
+    if let Ok(claim) = claim {
+        req.extensions_mut().insert(UserId {
+            id: claim.claims.sub,
+        });
+        return Ok(req);
     }
+
+    return Err((
+        ApiError::Unauthorized(Some("Bearer token not valid!".to_string())).into(),
+        req,
+    ));
 }

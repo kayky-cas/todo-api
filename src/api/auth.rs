@@ -1,10 +1,11 @@
 use actix_web::{
-    http::header::Encoding,
     post,
     web::{Data, Json},
     Responder, Result,
 };
+use chrono::Utc;
 use jsonwebtoken::{encode, EncodingKey};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::{postgres::PgDatabaseError, query, query_as};
 
@@ -14,15 +15,26 @@ use crate::{
     AppState,
 };
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Claims {
+    pub sub: String,
+    pub exp: usize,
+}
+
 #[post("")]
-pub async fn login(body: Json<LoginUser>, data: Data<AppState>) -> Result<impl Responder> {
+pub async fn login(
+    body: Json<LoginUser>,
+    data: Data<AppState>,
+) -> Result<impl Responder, ApiError> {
     let user = query_as!(User, "SELECT * FROM users WHERE email = $1", body.email)
         .fetch_optional(&data.db)
         .await
         .map_err(|_| ApiError::InternalDatabaseError(None))?;
 
     if user.is_none() {
-        return Err(ApiError::Forbidden(Some("Incorrect email or password!".to_string())).into());
+        return Err(ApiError::Forbidden(Some(
+            "Incorrect email or password!".to_string(),
+        )));
     }
 
     let user = user.unwrap();
@@ -30,9 +42,19 @@ pub async fn login(body: Json<LoginUser>, data: Data<AppState>) -> Result<impl R
     let secret_key =
         std::env::var("SECRET_KEY").map_err(|_| ApiError::InternalServerError(None))?;
 
+    let expiration = Utc::now()
+        .checked_add_signed(chrono::Duration::minutes(60))
+        .ok_or(ApiError::InternalServerError(None))?
+        .timestamp();
+
+    let claim = Claims {
+        sub: user.id.to_string(),
+        exp: expiration as usize,
+    };
+
     let token = encode(
         &jsonwebtoken::Header::default(),
-        &user,
+        &claim,
         &EncodingKey::from_secret(&secret_key.as_ref()),
     )
     .map_err(|_| ApiError::InternalServerError(None))?;
@@ -45,29 +67,31 @@ pub async fn login(body: Json<LoginUser>, data: Data<AppState>) -> Result<impl R
     Ok(Json(json!({ "user": user, "token": token })))
 }
 
+// TODO: create a good response
 #[post("/register")]
-pub async fn register(body: Json<CreateUser>, data: Data<AppState>) -> Result<impl Responder> {
-    let body = body.validate();
-
-    if let Err(message) = body {
-        return Err(ApiError::BadRequest(Some(message)).into());
-    }
-
-    let body = body.unwrap();
+pub async fn register(
+    body: Json<CreateUser>,
+    data: Data<AppState>,
+) -> Result<impl Responder, ApiError> {
+    let user = body
+        .validate()
+        .map_err(|message| ApiError::BadRequest(Some(message)))?;
 
     let query = query!(
         "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
-        body.name,
-        body.email,
-        body.password
+        user.name,
+        user.email,
+        user.password
     )
     .execute(&data.db)
     .await;
 
     if let Err(error) = query {
-        let error: &PgDatabaseError = error.as_database_error().unwrap().downcast_ref();
-
-        return Err(ApiError::from(error).into());
+        return Err(error
+            .as_database_error()
+            .ok_or(ApiError::InternalDatabaseError(None))?
+            .downcast_ref::<PgDatabaseError>()
+            .into());
     }
 
     return Ok("");

@@ -3,7 +3,7 @@ mod model;
 
 use std::env;
 
-use actix_web::{dev::ServiceRequest, error::Error, web, App, HttpServer, Result};
+use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
