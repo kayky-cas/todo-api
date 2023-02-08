@@ -14,6 +14,11 @@ pub struct Task {
     pub user_id: Uuid,
 }
 
+#[derive(FromRow)]
+pub struct UserIdTask {
+    pub user_id: Uuid,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct CreateTask {
     pub name: String,

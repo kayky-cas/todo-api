@@ -12,7 +12,7 @@ pub struct User {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct UserId {
-    pub id: String,
+    pub id: Uuid,
 }
 
 #[derive(Serialize)]

@@ -16,6 +16,8 @@ pub enum ApiError {
     Forbidden(Option<String>),
     #[display(fmt = "Bad reuqest!")]
     BadRequest(Option<String>),
+    #[display(fmt = "Unprocessable Entity!")]
+    UnprocessableEntity(Option<String>),
 }
 
 use serde_json::json;
@@ -29,6 +31,7 @@ impl ResponseError for ApiError {
             Unauthorized(_) => StatusCode::UNAUTHORIZED,
             Forbidden(_) => StatusCode::FORBIDDEN,
             BadRequest(_) => StatusCode::BAD_REQUEST,
+            UnprocessableEntity(_) => StatusCode::UNPROCESSABLE_ENTITY,
         }
     }
 
@@ -41,6 +44,7 @@ impl ResponseError for ApiError {
             | Unauthorized(Some(message))
             | Forbidden(Some(message))
             | BadRequest(Some(message)) => message.clone(),
+            UnprocessableEntity(Some(message)) => message.clone(),
             _ => format!("{}", self),
         };
 

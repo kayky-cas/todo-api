@@ -1,7 +1,7 @@
 use actix_web::{
     post,
     web::{Data, Json},
-    Responder, Result,
+    HttpResponse, Responder, Result,
 };
 use chrono::Utc;
 use jsonwebtoken::{encode, EncodingKey};
@@ -75,7 +75,7 @@ pub async fn register(
 ) -> Result<impl Responder, ApiError> {
     let user = body
         .validate()
-        .map_err(|message| ApiError::BadRequest(Some(message)))?;
+        .map_err(|message| ApiError::UnprocessableEntity(Some(message)))?;
 
     let query = query!(
         "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
@@ -94,5 +94,5 @@ pub async fn register(
             .into());
     }
 
-    return Ok("");
+    return Ok(HttpResponse::Created());
 }
