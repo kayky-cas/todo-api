@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
     let datatbase_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set!");
 
     let pool = PgPoolOptions::new()
-        .max_connections(5)
+        .max_connections(10)
         .connect(&datatbase_url)
         .await
         .expect("Unable to create the pool connection!");

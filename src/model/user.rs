@@ -48,6 +48,6 @@ impl CreateUser {
             return Err("The password must contains more than 8 letters.".to_string());
         }
 
-        return Ok(self.clone());
+        Ok(self.clone())
     }
 }

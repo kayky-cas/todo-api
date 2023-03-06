@@ -43,8 +43,8 @@ impl ResponseError for ApiError {
             | InternalServerError(Some(message))
             | Unauthorized(Some(message))
             | Forbidden(Some(message))
-            | BadRequest(Some(message)) => message.clone(),
-            UnprocessableEntity(Some(message)) => message.clone(),
+            | BadRequest(Some(message))
+            | UnprocessableEntity(Some(message)) => message.clone(),
             _ => format!("{}", self),
         };
 
@@ -65,19 +65,20 @@ fn format_detail_from_unique(detail: String) -> String {
         .map(|s| s.chars().take_while(|&c| c != ')').collect())
         .collect();
 
-    return format!("The {} {} already exists.", details[0], details[1]);
+    format!("The {} {} already exists.", details[0], details[1])
 }
 
 impl From<&PgDatabaseError> for ApiError {
     fn from(value: &PgDatabaseError) -> Self {
+        dbg!("Hello");
         match value.code() {
             "23505" if value.detail().is_some() => {
                 let detail = value.detail().unwrap().to_string();
-                return BadRequest(Some(format_detail_from_unique(detail)));
+                BadRequest(Some(format_detail_from_unique(detail)))
             }
             _ => {
-                println!("Code not handled: {:?}", value.code());
-                return Self::InternalDatabaseError(None);
+                dbg!("Code not handled: {:?}", value.code());
+                Self::InternalDatabaseError(None)
             }
         }
     }

@@ -1,17 +1,22 @@
+use std::error;
+
 use actix_web::{
-    post,
-    web::{Data, Json},
+    delete,
+    http::StatusCode,
+    post, put,
+    web::{Data, Json, ReqData},
     HttpResponse, Responder, Result,
 };
 use chrono::Utc;
 use jsonwebtoken::{encode, EncodingKey};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::{postgres::PgDatabaseError, query, query_as};
+use sqlx::{postgres::PgDatabaseError, query_as};
+use uuid::Uuid;
 
 use crate::{
     api::error::ApiError,
-    model::user::{CreateUser, LoginUser, User, UserInfo},
+    model::user::{CreateUser, LoginUser, User, UserId, UserInfo},
     AppState,
 };
 
@@ -43,7 +48,7 @@ pub async fn login(
         std::env::var("SECRET_KEY").map_err(|_| ApiError::InternalServerError(None))?;
 
     let expiration = Utc::now()
-        .checked_add_signed(chrono::Duration::minutes(60))
+        .checked_add_signed(chrono::Duration::minutes(120))
         .ok_or(ApiError::InternalServerError(None))?
         .timestamp();
 
@@ -55,7 +60,7 @@ pub async fn login(
     let token = encode(
         &jsonwebtoken::Header::default(),
         &claim,
-        &EncodingKey::from_secret(&secret_key.as_ref()),
+        &EncodingKey::from_secret(secret_key.as_ref()),
     )
     .map_err(|_| ApiError::InternalServerError(None))?;
 
@@ -67,7 +72,11 @@ pub async fn login(
     Ok(Json(json!({ "user": user, "token": token })))
 }
 
-// TODO: create a good response
+#[derive(Serialize)]
+struct ResponseUser {
+    name: String,
+    email: String,
+}
 #[post("/register")]
 pub async fn register(
     body: Json<CreateUser>,
@@ -77,22 +86,88 @@ pub async fn register(
         .validate()
         .map_err(|message| ApiError::UnprocessableEntity(Some(message)))?;
 
-    let query = query!(
-        "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
+    let query = query_as!(
+        ResponseUser,
+        "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) returning name, email",
         user.name,
         user.email,
         user.password
     )
-    .execute(&data.db)
+    .fetch_one(&data.db)
     .await;
 
-    if let Err(error) = query {
-        return Err(error
-            .as_database_error()
-            .ok_or(ApiError::InternalDatabaseError(None))?
-            .downcast_ref::<PgDatabaseError>()
-            .into());
-    }
+    let user = match query {
+        Ok(user) => user,
+        Err(error) => {
+            return Err(error
+                .as_database_error()
+                .ok_or(ApiError::InternalDatabaseError(None))?
+                .downcast_ref::<PgDatabaseError>()
+                .into())
+        }
+    };
 
-    return Ok(HttpResponse::Created());
+    Ok(HttpResponse::build(StatusCode::CREATED).json(user))
+}
+
+#[put("")]
+async fn update_user(
+    body: Json<CreateUser>,
+    data: Data<AppState>,
+    user: ReqData<UserId>,
+) -> Result<impl Responder, ApiError> {
+    let user = user.into_inner();
+
+    let query = query_as!(
+        ResponseUser,
+        "UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4 returning name, email",
+        body.name,
+        body.email,
+        body.password,
+        user.id
+    )
+    .fetch_one(&data.db)
+    .await;
+
+    let user = match query {
+        Ok(user) => user,
+        Err(error) => {
+            return Err(error
+                .as_database_error()
+                .ok_or(ApiError::InternalDatabaseError(None))?
+                .downcast_ref::<PgDatabaseError>()
+                .into());
+        }
+    };
+
+    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(user))
+}
+
+#[delete("")]
+pub async fn delete_user(
+    user: ReqData<UserId>,
+    data: Data<AppState>,
+) -> Result<impl Responder, ApiError> {
+    let user = user.into_inner();
+
+    let query = query_as!(
+        ResponseUser,
+        "DELETE FROM users WHERE id = $1 returning name, email",
+        user.id
+    )
+    .fetch_one(&data.db)
+    .await;
+
+    let user = match query {
+        Ok(user) => user,
+        Err(error) => {
+            return Err(error
+                .as_database_error()
+                .ok_or(ApiError::InternalDatabaseError(None))?
+                .downcast_ref::<PgDatabaseError>()
+                .into())
+        }
+    };
+
+    Ok(HttpResponse::build(StatusCode::ACCEPTED).json(user))
 }

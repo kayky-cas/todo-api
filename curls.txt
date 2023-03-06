@@ -1,0 +1,65 @@
+===== Criar Usuário (POST) =====
+curl --location '{URL}/api/auth/register' \
+         --header 'Content-Type: application/json' \
+         --data-raw '{
+             "name": "Nome Sobrenome",
+             "email": "nome@email.com",
+             "password": "12345678"
+         }'
+
+===== Login (POST) =====
+curl --location '{URL}/api/auth' \
+         --header 'Content-Type: application/json' \
+         --data-raw '{
+             "email": "nome@email.com",
+             "password": "12345678"
+         }'
+
+
+===== Atualiza Usuario (PUT) =====
+curl --location --request PUT '{URL}/api/user' \
+         --header 'Authorization: Bearer {TOKEN}' \
+         --header 'Content-Type: application/json' \
+         --data-raw '{
+             "name": "...",
+             "email": "...",
+             "password": "..."
+         }'
+
+
+===== Remove um usuaro (DELETE) =====
+curl --location --request DELETE '{URL}/api/user' \
+         --header 'Authorization: Bearer {TOKEN}';
+
+===== Receber todas as TASKs (GET) =====
+curl --location '{URL}/api/task' \
+         --header 'Authorization: Bearer {TOKEN}';
+
+
+===== Criar uma task (POST) =====
+curl --location '{URL}/api/task' \
+         --header 'Authorization: Bearer {TOKEN}' \
+         --header 'Content-Type: application/json' \
+         --data '{
+             "name": "..."
+         }'
+
+
+===== Atualziar uma task (PUT) =====
+curl --location --request PUT '{URL}/api/task' \
+         --header 'Authorization: Bearer {TOKEN}' \
+         --header 'Content-Type: application/json' \
+         --data '{
+             "id": "...",
+             "name": "...",
+             "description": "...",
+             "tag": "...",
+             "date": "...",
+             "user_id": "..."
+         }'
+
+
+===== Remove uma task (DELETE) =====
+curl --location --request DELETE '{URL}/api/task/{TASK ID}' \
+         --header 'Authorization: Bearer {TOKEN}';
+
