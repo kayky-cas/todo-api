@@ -1,5 +1,3 @@
-use std::error;
-
 use actix_web::{
     delete,
     http::StatusCode,
@@ -12,7 +10,6 @@ use jsonwebtoken::{encode, EncodingKey};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::{postgres::PgDatabaseError, query_as};
-use uuid::Uuid;
 
 use crate::{
     api::error::ApiError,

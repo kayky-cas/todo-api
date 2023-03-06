@@ -5,7 +5,7 @@ use actix_web::{
     web::{Data, Json, Path, ReqData},
     HttpResponse, Responder, Result,
 };
-use sqlx::{postgres::PgDatabaseError, query, query_as};
+use sqlx::{postgres::PgDatabaseError, query_as};
 use uuid::Uuid;
 
 use crate::{

@@ -14,12 +14,12 @@ use self::{
 use actix_web::{
     dev::ServiceRequest,
     error::Error,
-    web::{self, scope, Data},
+    web::{self, scope},
     HttpMessage,
 };
 use actix_web_httpauth::{extractors::bearer::BearerAuth, middleware::HttpAuthentication};
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use sqlx::{postgres::PgDatabaseError, query_as};
+use sqlx::query_as;
 use uuid::Uuid;
 
 pub fn config(conf: &mut web::ServiceConfig) {
