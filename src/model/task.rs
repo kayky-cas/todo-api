@@ -22,4 +22,7 @@ pub struct UserIdTask {
 #[derive(Serialize, Deserialize)]
 pub struct CreateTask {
     pub name: String,
+    pub description: Option<String>,
+    pub tag: String,
+    pub date: Option<NaiveDate>,
 }

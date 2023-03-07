@@ -49,8 +49,11 @@ pub async fn create_task(
 
     let query = query_as!(
         Task,
-        "INSERT INTO tasks (name, tag, user_id) VALUES ($1, 'Easy', $2) returning *",
+        "INSERT INTO tasks (name, tag, description, date, user_id) VALUES ($1, $2, $3, $4, $5) returning *",
         body.name,
+        body.tag,
+        body.description,
+        body.date,
         user.id
     )
     .fetch_one(&data.db)
