@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 use sqlx::FromRow;
@@ -10,7 +10,7 @@ pub struct Task {
     pub name: String,
     pub description: Option<String>,
     pub tag: String,
-    pub date: Option<NaiveDate>,
+    pub date: Option<NaiveDateTime>,
     pub user_id: Uuid,
 }
 
@@ -24,5 +24,5 @@ pub struct CreateTask {
     pub name: String,
     pub description: Option<String>,
     pub tag: String,
-    pub date: Option<NaiveDate>,
+    pub date: Option<NaiveDateTime>,
 }
