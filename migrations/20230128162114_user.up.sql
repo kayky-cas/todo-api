@@ -6,5 +6,6 @@ IF NOT EXISTS users (
     id UUID PRIMARY KEY NOT NULL DEFAULT (uuid_generate_v4()),
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR NOT NULL
+    password VARCHAR NOT NULL,
+    image VARCHAR
 );

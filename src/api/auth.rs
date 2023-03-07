@@ -64,16 +64,14 @@ pub async fn login(
     let user = UserInfo {
         name: user.name,
         email: user.email,
+        image: user.image,
     };
 
     Ok(Json(json!({ "user": user, "token": token })))
 }
 
-#[derive(Serialize)]
-struct ResponseUser {
-    name: String,
-    email: String,
-}
+type ResponseUser = UserInfo;
+
 #[post("/register")]
 pub async fn register(
     body: Json<CreateUser>,
@@ -85,10 +83,11 @@ pub async fn register(
 
     let query = query_as!(
         ResponseUser,
-        "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) returning name, email",
+        "INSERT INTO users (name, email, password, image) VALUES ($1, $2, $3, $4) returning name, email, image",
         user.name,
         user.email,
-        user.password
+        user.password,
+        user.image
     )
     .fetch_one(&data.db)
     .await;
@@ -117,10 +116,11 @@ async fn update_user(
 
     let query = query_as!(
         ResponseUser,
-        "UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4 returning name, email",
+        "UPDATE users SET name = $1, email = $2, password = $3, image = $4 WHERE id = $5 returning name, email, image",
         body.name,
         body.email,
         body.password,
+        body.image,
         user.id
     )
     .fetch_one(&data.db)
@@ -149,7 +149,7 @@ pub async fn delete_user(
 
     let query = query_as!(
         ResponseUser,
-        "DELETE FROM users WHERE id = $1 returning name, email",
+        "DELETE FROM users WHERE id = $1 returning name, email, image",
         user.id
     )
     .fetch_one(&data.db)

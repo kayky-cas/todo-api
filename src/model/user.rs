@@ -8,6 +8,7 @@ pub struct User {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub image: Option<String>,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -19,6 +20,7 @@ pub struct UserId {
 pub struct UserInfo {
     pub name: String,
     pub email: String,
+    pub image: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -32,6 +34,7 @@ pub struct CreateUser {
     pub name: String,
     pub email: String,
     pub password: String,
+    pub image: Option<String>,
 }
 
 impl CreateUser {
