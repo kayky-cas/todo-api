@@ -10,7 +10,7 @@ pub struct Task {
     pub name: String,
     pub description: Option<String>,
     pub tag: String,
-    pub date: Option<NaiveDateTime>,
+    pub date: Option<String>,
     pub user_id: Uuid,
 }
 
@@ -24,5 +24,5 @@ pub struct CreateTask {
     pub name: String,
     pub description: Option<String>,
     pub tag: String,
-    pub date: Option<NaiveDateTime>,
+    pub date: Option<String>,
 }
