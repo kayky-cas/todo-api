@@ -45,15 +45,16 @@ pub async fn create_task(
     data: Data<AppState>,
     user: ReqData<UserId>,
 ) -> Result<impl Responder, ApiError> {
+    let task = body.into_inner();
     let user = user.into_inner();
 
     let query = query_as!(
         Task,
         "INSERT INTO tasks (name, tag, description, date, user_id) VALUES ($1, $2, $3, $4, $5) returning *",
-        body.name,
-        body.tag,
-        body.description,
-        body.date,
+        task.name,
+        task.tag,
+        task.description,
+        task.date,
         user.id
     )
     .fetch_one(&data.db)
@@ -80,11 +81,12 @@ async fn update_task(
     user: ReqData<UserId>,
 ) -> Result<impl Responder, ApiError> {
     let user = user.into_inner();
+    let task = body.into_inner();
 
     let query = query_as!(
         UserIdTask,
         "SELECT user_id FROM tasks WHERE id = $1",
-        body.id
+        task.id
     )
     .fetch_optional(&data.db)
     .await;
@@ -114,14 +116,14 @@ async fn update_task(
     let query = query_as!(
         Task,
         "UPDATE tasks SET name = $1, description = $2, tag = $3, date = $4 WHERE id = $5 returning *",
-        body.name,
-        body.description,
-        body.tag,
-        body.date,
-        body.id,
-        )
-        .fetch_one(&data.db)
-        .await;
+        task.name,
+        task.description,
+        task.tag,
+        task.date,
+        task.id,
+    )
+    .fetch_one(&data.db)
+    .await;
 
     let task = match query {
         Ok(task) => task,

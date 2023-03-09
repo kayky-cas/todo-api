@@ -78,6 +78,7 @@ pub async fn register(
     data: Data<AppState>,
 ) -> Result<impl Responder, ApiError> {
     let user = body
+        .into_inner()
         .validate()
         .map_err(|message| ApiError::UnprocessableEntity(Some(message)))?;
 
