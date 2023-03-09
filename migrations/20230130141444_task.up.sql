@@ -8,5 +8,5 @@ IF NOT EXISTS tasks (
     date VARCHAR,
     user_id UUID NOT NULL,
 
-    CONSTRAINT fk_user_task FOREIGN KEY(user_id) REFERENCES users(id)
+    CONSTRAINT fk_user_task FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
