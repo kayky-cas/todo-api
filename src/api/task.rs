@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::{
     api::error::ApiError,
     model::{
-        task::{CreateTask, Task, UserIdTask},
+        task::{CreateTask, Task, UpdateTask, UserIdTask},
         user::UserId,
     },
     AppState,
@@ -76,7 +76,7 @@ pub async fn create_task(
 
 #[put("")]
 async fn update_task(
-    body: Json<Task>,
+    body: Json<UpdateTask>,
     data: Data<AppState>,
     user: ReqData<UserId>,
 ) -> Result<impl Responder, ApiError> {

@@ -14,6 +14,15 @@ pub struct Task {
     pub user_id: Uuid,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct UpdateTask {
+    pub id: Uuid,
+    pub name: String,
+    pub description: Option<String>,
+    pub tag: String,
+    pub date: Option<DateTime<chrono::Utc>>,
+}
+
 #[derive(FromRow)]
 pub struct UserIdTask {
     pub user_id: Uuid,
