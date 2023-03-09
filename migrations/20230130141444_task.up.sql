@@ -5,7 +5,7 @@ IF NOT EXISTS tasks (
     name VARCHAR(255) NOT NULL,
     description VARCHAR,
     tag VARCHAR(20) NOT NULL,
-    date VARCHAR,
+    date TIMESTAMPTZ,
     user_id UUID NOT NULL,
 
     CONSTRAINT fk_user_task FOREIGN KEY(user_id) REFERENCES users(id)
